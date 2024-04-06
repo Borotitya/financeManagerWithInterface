@@ -21,7 +21,7 @@ public:
 	virtual void addTransaction(const wstring& category, double amount) = 0; // добавляет транзакцию
 	virtual double calculateTotal() const = 0; // возвращает общую сумму транзакций
 	virtual vector<InterfaceTransaction*> getTransactions() const = 0; // возвращает вектор транзакций
-	virtual double getIncome() const = 0; // метод, возвращающий полученный доход
+	virtual double getIncome() const = 0; // метод, возвращающий полученный доход 
 };
 
 class InterfaceTransactionCategory {// интерфейс категории транзакции
@@ -34,16 +34,33 @@ public: // публичный интерфейс
 
 class InterfaceNotification { // интерфейс уведомления
 public: // публичный интерфейс
-	virtual ~InterfaceNotification() {} // виртуальный деструктор
-	virtual void showNotification(const wstring& message) const = 0; // показывает уведомление
+    virtual ~InterfaceNotification() {} // виртуальный деструктор
+    virtual void showNotification(const wstring& message) const = 0; // показывает уведомление
+};
+
+class InterfaceBudget { // интерфейс бюджет
+public: 
+    virtual ~InterfaceBudget() {}// виртуальный деструктор
+    virtual void setBudget(double newBudget) = 0; // устанавливает бюджет 
+    virtual double getBudget() const = 0; // возвращает бюджет
+};
+
+class InterfaceSavings { // интерфейс сбережений
+public:
+    virtual ~InterfaceSavings() {} // виртуальный деструктор 
+    virtual void setSavings(double newSavings) = 0; // устанавливает сбережения
+    virtual double getSavings() const = 0; // возвращает сбережения
 };
 
 
-class FinanceTracker : public InterfaceFinanceTracker, public InterfaceTransactionCategory, public InterfaceNotification { // финансовый трекер с уведомлениями
+class FinanceTracker : public InterfaceFinanceTracker, public InterfaceTransactionCategory, public InterfaceNotification,
+    public InterfaceBudget, public InterfaceSavings { // финансовый трекер с уведомлениями
 private: // приватные поля
 	double income; // доход
 	vector<InterfaceTransaction*> transactions; // вектор транзакции
 	vector<wstring> categories;  // вектор категорий
+    double budget; // бюджет
+    double savings; // сбережения
 public:
 	FinanceTracker() : income(0) {} // конструктор
 	void setIncome(double newIncome) override { // устанавливает доход
@@ -89,6 +106,21 @@ public:
 	void showNotification(const wstring& message) const override { // показывает уведомление
 		MessageBoxW(NULL, message.c_str(), L"Уведомление", MB_OK | MB_ICONINFORMATION); // показываем уведомление сообщением в окне приложения 
 	}
+    void setBudget(double newBudget) override {
+        budget = newBudget;
+    }
+
+    double getBudget() const override {
+        return budget;
+    }
+
+    void setSavings(double newSavings) override {
+        savings = newSavings;
+    }
+
+    double getSavings() const override {
+        return savings;
+    }
 
 private: // приватные методы и поля класса FinanceTracker
 	class Transaction : public InterfaceTransaction { // транзакция 
