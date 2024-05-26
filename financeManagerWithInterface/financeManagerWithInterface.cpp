@@ -7,68 +7,78 @@
 
 using namespace std;
 
-__interface ITransaction {
+__interface ITransaction 
+{
     wstring get_category();
     double get_amount();
 };
 
-__interface IFinanceTracker {
-    void set_income(double new_income);
-    void add_transaction(const wstring& category, double amount);
+__interface IFinanceTracker 
+{
+    void set_income(double);
+    void add_transaction(const wstring&, double);
     double calculate_total();
     vector<ITransaction*> get_transactions();
     double get_income();
 };
 
-__interface ITransactionCategory {
-    void add_category(const wstring& category);
+__interface ITransactionCategory 
+{
+    void add_category(const wstring&);
     vector<wstring> get_categories();
-    void show_notification(const wstring& message);
+    void show_notification(const wstring&);
 };
 
-__interface INotification {
-    void show_notification(const wstring& message);
+__interface INotification 
+{
+    void show_notification(const wstring&);
 };
 
-__interface IBudget {
-    void set_budget(double new_budget);
+__interface IBudget 
+{
+    void set_budget(double);
     double get_budget();
 };
 
-__interface ISavings {
-    void set_savings(double new_savings);
+__interface ISavings 
+{
+    void set_savings(double);
     double get_savings();
 };
 
-__interface InterfaceWindow {
+__interface InterfaceWindow 
+{
     void create_window(HINSTANCE hInstance, int nCmdShow);
 };
 
-void update_total(IFinanceTracker* tracker, HWND hWnd) {
+void update_total(IFinanceTracker* tracker, HWND hWnd) 
+{
     double total_spent = tracker->calculate_total();
-    std::wostringstream total_spent_str;
-    total_spent_str << L"Общая сумма потраченных средств: $" << std::fixed << std::setprecision(2) << total_spent;
+    wostringstream total_spent_str;
+    total_spent_str << L"Общая сумма потраченных средств: $" << fixed << setprecision(2) << total_spent;
     HWND hStaticTotalSpent = GetDlgItem(hWnd, 7);
     SetWindowTextW(hStaticTotalSpent, total_spent_str.str().c_str());
 
     double income = tracker->get_income();
-    std::wostringstream income_str;
-    income_str << L"Текущий доход: $" << std::fixed << std::setprecision(2) << income;
+    wostringstream income_str;
+    income_str << L"Текущий доход: $" << fixed << setprecision(2) << income;
     HWND hStaticIncome = GetDlgItem(hWnd, 9);
     SetWindowTextW(hStaticIncome, income_str.str().c_str());
 
     HWND hList = GetDlgItem(hWnd, 8);
     SendMessageW(hList, LB_RESETCONTENT, 0, 0);
-    std::vector<ITransaction*> transactions = tracker->get_transactions();
-    for (const auto& transaction : transactions) {
-        std::wostringstream transaction_str;
-        transaction_str << L"Категория: " << transaction->get_category() << L", Сумма: $" << std::fixed << std::setprecision(2) << transaction->get_amount();
+    vector<ITransaction*> transactions = tracker->get_transactions();
+    for (const auto& transaction : transactions) 
+    {
+        wostringstream transaction_str;
+        transaction_str << L"Категория: " << transaction->get_category() << L", Сумма: $" << fixed << setprecision(2) << transaction->get_amount();
         SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)transaction_str.str().c_str());
     }
 }
 
 class FinanceTracker : public IFinanceTracker, public ITransactionCategory, public INotification,
-    public IBudget, public ISavings, public InterfaceWindow {
+    public IBudget, public ISavings, public InterfaceWindow 
+{
 private:
     double income;
     vector<ITransaction*> transactions;
@@ -82,67 +92,56 @@ private:
 public:
     FinanceTracker() : income(0), budget(0), savings(0), summary_window(NULL), table_window(NULL) {}
 
-    void set_income(double new_income) override {
+    void set_income(double new_income)  
+    {
         income = new_income;
     }
 
-    void add_transaction(const wstring& category, double amount) override {
-        if ((category == L"Общие" || category == L"Одиночные") && amount > income) {
+    void add_transaction(const wstring& category, double amount) 
+    {
+        if ((category == L"Общие" || category == L"Одиночные") && amount > income) 
+        {
             show_notification(L"Сумма транзакции не может превышать доход!");
             return;
         }
-        else if (category != L"Общие" && category != L"Одиночные" && calculate_total() + amount > income) {
+        else if (category != L"Общие" && category != L"Одиночные" && calculate_total() + amount > income) 
+        {
             show_notification(L"Сумма транзакции не может превышать доход!");
             return;
         }
         transactions.push_back(new Transaction(category, amount));
     }
 
-    double calculate_total() override {
+    double calculate_total()
+    {
         double total_spent = 0;
-        for (const auto& transaction : transactions) {
+        for (const auto& transaction : transactions) 
+        {
             total_spent += transaction->get_amount();
         }
         return total_spent;
     }
 
-    vector<ITransaction*> get_transactions() override {
-        return transactions;
-    }
+    vector<ITransaction*> get_transactions() { return transactions; }
 
-    double get_income() override {
-        return income;
-    }
+    double get_income() { return income; }
 
-    void add_category(const wstring& category) override {
-        categories.push_back(category);
-    }
+    void add_category(const wstring& category)  { categories.push_back(category);}
 
-    vector<wstring> get_categories()override {
-        return categories;
-    }
+    vector<wstring> get_categories(){ return categories; }
 
-    void show_notification(const wstring& message) override {
-        MessageBoxW(NULL, message.c_str(), L"Уведомление", MB_OK | MB_ICONINFORMATION);
-    }
+    void show_notification(const wstring& message)  { MessageBoxW(NULL, message.c_str(), L"Уведомление", MB_OK | MB_ICONINFORMATION);}
 
-    void set_budget(double new_budget) override {
-        budget = new_budget;
-    }
+    void set_budget(double new_budget)  { budget = new_budget; }
 
-    double get_budget()override {
-        return budget;
-    }
+    double get_budget() { return budget; }
 
-    void set_savings(double new_savings) override {
-        savings = new_savings;
-    }
+    void set_savings(double new_savings)  { savings = new_savings; }
 
-    double get_savings() override {
-        return savings;
-    }
+    double get_savings() { return savings; }
 
-    void create_window(HINSTANCE hInstance, int nCmdShow) override {
+    void create_window(HINSTANCE hInstance, int nCmdShow) 
+    {
         WNDCLASSEXW wcex;
         wcex.cbSize = sizeof(WNDCLASSEX);
         wcex.style = CS_HREDRAW | CS_VREDRAW;
@@ -157,7 +156,8 @@ public:
         wcex.lpszClassName = L"FinanceTracker";
         wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
 
-        if (!RegisterClassExW(&wcex)) {
+        if (!RegisterClassExW(&wcex)) 
+        {
             MessageBoxW(NULL, L"Не удалось зарегистрировать класс окна.", L"Ошибка", MB_OK | MB_ICONERROR);
             return;
         }
@@ -165,7 +165,8 @@ public:
         main_window = CreateWindowW(L"FinanceTracker", L"Отслеживание финансов", WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT, 400, 250, nullptr, nullptr, hInstance, this);
 
-        if (!main_window) {
+        if (!main_window) 
+        {
             MessageBoxW(NULL, L"Не удалось создать окно приложения.", L"Ошибка", MB_OK | MB_ICONERROR);
             return;
         }
@@ -175,7 +176,8 @@ public:
     }
 
 private:
-    class Transaction : public ITransaction {
+    class Transaction : public ITransaction 
+    {
     private:
         wstring category;
         double amount;
@@ -183,28 +185,26 @@ private:
     public:
         Transaction(const wstring& category, double amount) : category(category), amount(amount) {}
 
-        wstring get_category() override {
-            return category;
-        }
+        wstring get_category() { return category;}
 
-        double get_amount() override {
-            return amount;
-        }
+        double get_amount() { return amount; }
     };
 
-    static LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    static LRESULT CALLBACK wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
+    {
         FinanceTracker* tracker;
-        if (message == WM_CREATE) {
+        if (message == WM_CREATE) 
+        {
             CREATESTRUCT* pCreate = (CREATESTRUCT*)lParam;
             tracker = (FinanceTracker*)pCreate->lpCreateParams;
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)tracker);
         }
-        else {
-            tracker = (FinanceTracker*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-        }
+        else { tracker = (FinanceTracker*)GetWindowLongPtr(hWnd, GWLP_USERDATA);}
 
-        switch (message) {
-        case WM_CREATE: {
+        switch (message) 
+        {
+        case WM_CREATE: 
+        {
             CreateWindowW(L"STATIC", L"Доход:", WS_VISIBLE | WS_CHILD, 10, 10, 80, 30, hWnd, NULL, NULL, NULL);
             CreateWindowW(L"EDIT", L"", WS_VISIBLE | WS_CHILD | WS_BORDER, 100, 10, 100, 30, hWnd, (HMENU)1, NULL, NULL);
             CreateWindowW(L"BUTTON", L"Установить доход", WS_VISIBLE | WS_CHILD, 210, 10, 150, 30, hWnd, (HMENU)2, NULL, NULL);
@@ -232,10 +232,13 @@ private:
             CreateWindowW(L"STATIC", L"", WS_VISIBLE | WS_CHILD, 10, 420, 350, 30, hWnd, (HMENU)9, NULL, NULL);
         }
                       break;
-        case WM_COMMAND: {
+        case WM_COMMAND: 
+        {
             int wmId = LOWORD(wParam);
-            switch (wmId) {
-            case 2: {
+            switch (wmId) 
+            {
+            case 2: 
+            {
                 wchar_t buffer[256];
                 GetDlgItemTextW(hWnd, 1, buffer, 256);
                 double income = _wtof(buffer);
@@ -243,7 +246,8 @@ private:
                 MessageBoxW(hWnd, L"Доход успешно установлен!", L"Уведомление", MB_OK | MB_ICONINFORMATION);
             }
                   break;
-            case 5: {
+            case 5: 
+            {
                 wchar_t categoryBuffer[256];
                 GetDlgItemTextW(hWnd, 3, categoryBuffer, 256);
                 std::wstring category = categoryBuffer;
@@ -277,8 +281,10 @@ private:
         return 0;
     }
 
-    void show_summary_window(HWND hParent, IFinanceTracker* tracker) {
-        if (summary_window) {
+    void show_summary_window(HWND hParent, IFinanceTracker* tracker) 
+    {
+        if (summary_window) 
+        {
             SetForegroundWindow(summary_window);
             return;
         }
@@ -297,7 +303,8 @@ private:
         wcex.lpszClassName = L"SummaryWindow";
         wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
 
-        if (!RegisterClassExW(&wcex)) {
+        if (!RegisterClassExW(&wcex)) 
+        {
             MessageBoxW(NULL, L"Не удалось зарегистрировать класс окна.", L"Ошибка", MB_OK | MB_ICONERROR);
             return;
         }
@@ -305,7 +312,8 @@ private:
         summary_window = CreateWindowW(L"SummaryWindow", L"Сводка транзакций", WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT, 400, 250, hParent, NULL, GetModuleHandle(NULL), tracker);
 
-        if (!summary_window) {
+        if (!summary_window) 
+        {
             MessageBoxW(NULL, L"Не удалось создать окно сводки.", L"Ошибка", MB_OK | MB_ICONERROR);
             return;
         }
@@ -314,8 +322,10 @@ private:
         UpdateWindow(summary_window);
     }
 
-    void show_table_window(HWND hParent, IFinanceTracker* tracker) {
-        if (table_window) {
+    void show_table_window(HWND hParent, IFinanceTracker* tracker) 
+    {
+        if (table_window) 
+        {
             SetForegroundWindow(table_window);
             return;
         }
@@ -334,7 +344,8 @@ private:
         wcex.lpszClassName = L"TableWindow";
         wcex.hIconSm = LoadIcon(wcex.hInstance, IDI_APPLICATION);
 
-        if (!RegisterClassExW(&wcex)) {
+        if (!RegisterClassExW(&wcex)) 
+        {
             MessageBoxW(NULL, L"Не удалось зарегистрировать класс окна.", L"Ошибка", MB_OK | MB_ICONERROR);
             return;
         }
@@ -342,7 +353,8 @@ private:
         table_window = CreateWindowW(L"TableWindow", L"Таблица транзакций", WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT, 600, 400, hParent, NULL, GetModuleHandle(NULL), tracker);
 
-        if (!table_window) {
+        if (!table_window) 
+        {
             MessageBoxW(NULL, L"Не удалось создать окно таблицы.", L"Ошибка", MB_OK | MB_ICONERROR);
             return;
         }
@@ -351,19 +363,21 @@ private:
         UpdateWindow(table_window);
     }
 
-    static LRESULT CALLBACK summary_wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    static LRESULT CALLBACK summary_wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+    {
         FinanceTracker* tracker;
-        if (message == WM_CREATE) {
+        if (message == WM_CREATE) 
+        {
             CREATESTRUCT* pCreate = (CREATESTRUCT*)lParam;
             tracker = (FinanceTracker*)pCreate->lpCreateParams;
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)tracker);
         }
-        else {
-            tracker = (FinanceTracker*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-        }
+        else { tracker = (FinanceTracker*)GetWindowLongPtr(hWnd, GWLP_USERDATA); }
 
-        switch (message) {
-        case WM_CREATE: {
+        switch (message) 
+        {
+        case WM_CREATE: 
+        {
             CreateWindowW(L"STATIC", L"Сводка:", WS_VISIBLE | WS_CHILD, 10, 10, 80, 30, hWnd, NULL, NULL, NULL);
             CreateWindowW(L"STATIC", L"Общий доход:", WS_VISIBLE | WS_CHILD, 10, 50, 150, 30, hWnd, (HMENU)1, NULL, NULL);
             CreateWindowW(L"STATIC", L"Общие расходы:", WS_VISIBLE | WS_CHILD, 10, 90, 150, 30, hWnd, (HMENU)2, NULL, NULL);
@@ -397,21 +411,23 @@ private:
 
     static LRESULT CALLBACK table_wnd_proc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
         FinanceTracker* tracker;
-        if (message == WM_CREATE) {
+        if (message == WM_CREATE) 
+        {
             CREATESTRUCT* pCreate = (CREATESTRUCT*)lParam;
             tracker = (FinanceTracker*)pCreate->lpCreateParams;
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)tracker);
         }
-        else {
-            tracker = (FinanceTracker*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
-        }
-
-        switch (message) {
-        case WM_CREATE: {
+        else {tracker = (FinanceTracker*)GetWindowLongPtr(hWnd, GWLP_USERDATA);}
+      
+        switch (message) 
+        {
+        case WM_CREATE: 
+        {
             CreateWindowW(L"LISTBOX", L"", WS_VISIBLE | WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_NOTIFY, 10, 10, 580, 350, hWnd, (HMENU)1, NULL, NULL);
             HWND hList = GetDlgItem(hWnd, 1);
-            std::vector<ITransaction*> transactions = tracker->get_transactions();
-            for (const auto& transaction : transactions) {
+            vector<ITransaction*> transactions = tracker->get_transactions();
+            for (const auto& transaction : transactions) 
+            {
                 std::wostringstream transaction_str;
                 transaction_str << L"Категория: " << transaction->get_category() << L", Сумма: $" << std::fixed << std::setprecision(2) << transaction->get_amount();
                 SendMessageW(hList, LB_ADDSTRING, 0, (LPARAM)transaction_str.str().c_str());
@@ -428,7 +444,8 @@ private:
     }
 };
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
+{
     FinanceTracker tracker;
     tracker.create_window(hInstance, nCmdShow);
     MSG msg;
